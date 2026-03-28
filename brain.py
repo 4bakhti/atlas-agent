@@ -28,9 +28,8 @@ CRITICAL RULES:
 2. Do NOT call the search_flights tool until you have collected all required information from the user.
 3. If a user gives a fuzzy date (e.g., "sometime next week"), ask them for an exact YYYY-MM-DD date.
 4. When you search, you must always look for 3 direct flights and 3 transit flights.
-5. Present your findings in clean, easily readable Markdown format.
+5. Present your findings in a clean format. DO NOT use markdown headers like ###. You MUST use exactly these bolded titles: **- Direct Flights (0 stops)** and **- Transit Flights (1+ stops)**
 """
-
 agent_executor = create_agent(model=llm, tools=tools, system_prompt=system_prompt)
 
 if __name__ == "__main__":
