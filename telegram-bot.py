@@ -3,7 +3,7 @@ import telebot
 import re
 from dotenv import load_dotenv
 
-from brain import agent_executor, get_city_image
+from brain import agent_executor
 
 
 load_dotenv()
@@ -37,10 +37,6 @@ def handle_message(message):
         destination_match = re.search(r"to ([A-Za-z]+)", message.text)
         destination = destination_match.group(1) if destination_match else "travel"
 
-        image_url = get_city_image(destination)
-        if not image_url:
-            image_url = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e"
-
         formatted_text = clean_text.replace(
             "- Direct Flights (0 stops)",
             "\n✈️ *Direct Flights (0 stops)*"
@@ -49,10 +45,9 @@ def handle_message(message):
             "\n🔁 *Transit Flights (1+ stops)*"
         )
 
-        bot.send_photo(
+        bot.send_message(
             message.chat.id,
-            image_url,
-            caption=formatted_text,
+            text=formatted_text,
             parse_mode="Markdown"
         )   
         print("--> Replied successfully!")

@@ -36,27 +36,6 @@ CRITICAL RULES:
 """
 agent_executor = create_agent(model=llm, tools=tools, system_prompt=system_prompt)
 
-def get_city_image(city):
-    access_key = os.getenv("UNSPLASH_ACCESS_KEY")
-    
-    url = "https://api.unsplash.com/search/photos"
-    params = {
-        "query": city,
-        "client_id": access_key,
-        "orientation": "landscape"
-    }
-
-    try:
-        response = requests.get(url, params=params)
-        data = response.json()
-        
-        if data["results"]:
-            return data["results"][0]["urls"]["regular"]
-        else:
-            return None
-    except:
-        return None
-
 if __name__ == "__main__":
     print("Travel Agent Brain (V1.0 Edition) is online. Type 'quit' to exit.")
     
