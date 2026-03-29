@@ -1,6 +1,7 @@
 import os
 import telebot
 import re
+import pycountry
 from dotenv import load_dotenv
 
 from brain import agent_executor
@@ -15,46 +16,45 @@ if not BOT_TOKEN:
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
+def get_flag(country_name):
+    try:
+        country = pycountry.countries.search_fuzzy(country_name)[0]
+        return country.flag
+    except:
+        return "🌐"
+
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
-    welcome_text = "✈️ **Welcome to Atlas Travel Agent!** \n\nTell me where you want to go. (e.g., 'Find me flights from Budapest to Barcelona on 2026-05-14')"
-    bot.reply_to(message, welcome_text, parse_mode="Markdown")
+    welcome_text = "✈️ <b>Welcome to Atlas Travel Agent!</b> \n\nTell me where you want to go. (e.g., 'Find me flights from Budapest to Barcelona on 2026-05-14')"
+    bot.reply_to(message, welcome_text, parse_mode="HTML")
 
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
     print(f"\n--> Received from {message.from_user.first_name}: {message.text}")
     bot.send_chat_action(message.chat.id, 'typing')
     try:
-        # passing user message to model
+        # 1. Get the response from the AI
         response = agent_executor.invoke({"messages": [("user", message.text)]})
+        final_text = response["messages"][-1].content
         
-        #text cleaning
-        raw_content = response["messages"][-1].content
-        if isinstance(raw_content, list):
-            clean_text = raw_content[0]['text']
-        else:
-            clean_text = raw_content
-        destination_match = re.search(r"to ([A-Za-z]+)", message.text)
-        destination = destination_match.group(1) if destination_match else "travel"
-
-        formatted_text = clean_text.replace(
-            "- Direct Flights (0 stops)",
-            "\n✈️ *Direct Flights (0 stops)*"
-        ).replace(
-            "- Transit Flights (1+ stops)",
-            "\n🔁 *Transit Flights (1+ stops)*"
-        )
-
+        country_matches = re.findall(r"\[([A-Za-z\s]+)\]", final_text)
+        for country_name in country_matches:
+            flag = get_flag(country_name)
+            final_text = final_text.replace(f"[{country_name}]", f"{flag}")
         bot.send_message(
             message.chat.id,
-            text=formatted_text,
-            parse_mode="Markdown"
-        )   
-        print("--> Replied successfully!")
+            text=final_text,
+            parse_mode="HTML" 
+        )
+        print("--> Replied with high-quality design AND flags!")
         
     except Exception as e:
-        bot.reply_to(message, "Sorry, I am having trouble connecting to my systems. Please try again!")
-        print(f"Error: {e}")
+        print(f"\n[CRITICAL ERROR] The bot crashed because: {e}")
+        bot.send_message(
+            message.chat.id, 
+            "⚠️ <b>Oops!</b> Our travel servers are experiencing high demand (everyone wants a cheap flight today!). Please wait about 15 seconds and try again.",
+            parse_mode="HTML"
+        )
 
 if __name__ == "__main__":
     print("🚀 Telegram Bot is online and listening! Open Telegram and say hi.")
