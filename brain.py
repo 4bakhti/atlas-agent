@@ -1,5 +1,4 @@
 import os
-import requests
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI 
 from langchain_core.tools import tool

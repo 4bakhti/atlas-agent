@@ -2,4 +2,3 @@ langchain
 langchain-google-genai
 python-dotenv
 pyTelegramBotAPI
-requests
