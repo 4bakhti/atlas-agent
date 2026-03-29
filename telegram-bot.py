@@ -1,9 +1,12 @@
 import os
 import telebot
+import re
 from dotenv import load_dotenv
 
-from brain import agent_executor
-load_dotenv
+from brain import agent_executor, get_city_image
+
+
+load_dotenv()
 BOT_TOKEN=os.getenv('TELEGRAM_BOT_TOKEN')
 
 if not BOT_TOKEN:
@@ -31,8 +34,27 @@ def handle_message(message):
             clean_text = raw_content[0]['text']
         else:
             clean_text = raw_content
-            
-        bot.reply_to(message, clean_text, parse_mode="Markdown")        
+        destination_match = re.search(r"to ([A-Za-z]+)", message.text)
+        destination = destination_match.group(1) if destination_match else "travel"
+
+        image_url = get_city_image(destination)
+        if not image_url:
+            image_url = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e"
+
+        formatted_text = clean_text.replace(
+            "- Direct Flights (0 stops)",
+            "\n✈️ *Direct Flights (0 stops)*"
+        ).replace(
+            "- Transit Flights (1+ stops)",
+            "\n🔁 *Transit Flights (1+ stops)*"
+        )
+
+        bot.send_photo(
+            message.chat.id,
+            image_url,
+            caption=formatted_text,
+            parse_mode="Markdown"
+        )   
         print("--> Replied successfully!")
         
     except Exception as e:
